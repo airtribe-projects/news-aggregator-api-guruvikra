@@ -1,6 +1,10 @@
 const tap = require('tap');
 const supertest = require('supertest');
-const app = require('../app');
+const app = require('../src/app.js');
+const mongoose = require('mongoose');
+const connectDB = require('../src/db/db.js');
+const User = require('../src/models/users.js');
+
 const server = supertest(app);
 
 const mockUser = {
@@ -12,9 +16,14 @@ const mockUser = {
 
 let token = '';
 
+tap.before(async () => {
+    await connectDB();
+    await User.deleteMany({});
+});
+
 // Auth tests
 
-tap.test('POST /users/signup', async (t) => { 
+tap.test('POST /users/signup', async (t) => {
     const response = await server.post('/users/signup').send(mockUser);
     t.equal(response.status, 200);
     t.end();
@@ -29,7 +38,7 @@ tap.test('POST /users/signup with missing email', async (t) => {
     t.end();
 });
 
-tap.test('POST /users/login', async (t) => { 
+tap.test('POST /users/login', async (t) => {
     const response = await server.post('/users/login').send({
         email: mockUser.email,
         password: mockUser.password
@@ -96,6 +105,6 @@ tap.test('GET /news without token', async (t) => {
 
 
 
-tap.teardown(() => {
-    process.exit(0);
+tap.teardown(async () => {
+    await mongoose.disconnect();
 });
