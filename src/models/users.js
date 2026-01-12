@@ -23,31 +23,24 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        trim: true,
-        minlength: 2,
-        maxlength: 100
+        minlength: 8
     },
     preferences: {
         type: [String],
-        required: true,
-        trim: true,
-        minlength: 2,
-        maxlength: 100
+        default: []
     }
 }, { timestamps: true })
 
 
 
-userSchema.pre("save", async function ( next ) {
-    if(!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
     try{
         this.password=await bcrypt.hash(this.password, 10);
-    next();
     }
     catch(err){
         console.error(err);
         console.error("Hashing error:", err);
-        next(err);
     }
 })
 
